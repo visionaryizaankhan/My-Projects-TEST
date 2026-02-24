@@ -1,9 +1,9 @@
 -- PYPHY ENGINE --
 Welcome programmers, this is a layer of engine over pygame (pygame is used as base for rendering and screen).
 
- ---------
+ --------
 | STATUS |
- ---------
+ --------
 • Version: 1.0
 • Warning: Test only, requires pygame in order to run (no openGL requirements)
 
