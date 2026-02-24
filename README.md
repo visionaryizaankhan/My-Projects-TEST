@@ -2,4 +2,4 @@
 
 1. Pyphy - A layer of engineering over pygame (pygame + pyphy is abosolute experience)
 
-**ENJOY ;) Well Yes I have only thing and I DGAF**
+**ENJOY, Well Yes I have only one project and I DGAF >:} **
