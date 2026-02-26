@@ -17,7 +17,7 @@ class Screen:
         self.delta_time = 0
         self.running = True
         self.background_color = RGBa.WHITE
-        self.scene = Scene()
+        self.scene = None
 
     def set_background_color(self, new_color: RGBa):
         self.background_color = new_color
@@ -29,7 +29,6 @@ class Screen:
         self.delta_time = self.clock.tick(60) / 1000
         Input._delta_time = self.delta_time
         pygame.display.flip()   
-        self.scene._process_destroy_queue()
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -42,11 +41,29 @@ class Screen:
     def centre(self):
         return Vector2(self.size.x/2, self.size.y/2)
     
+    def set_scene(self, scene):
+        self.scene = scene
+        scene.screen = self
+    
+    def run(self):
+        self.scene.start()
+        while self.running:
+            self.clear()
+            self.handle_events()
+
+            self.scene.update(self.delta_time)
+            self.scene.physics_update(self.delta_time)
+            self.scene.render()
+
+            self.update()
+
+    
 
 class Scene:
     def __init__(self):
         self.scene_objects = []
         self._destroy_queue = []
+        self.screen = None
 
     def add_objects(self, *objects):
         if isinstance(objects, (list, tuple, set)):
@@ -72,9 +89,10 @@ class Scene:
         for obj in self.scene_objects:
             obj.physics_update(dt)
 
-    def render(self, screen):
+    def render(self):
         for obj in self.scene_objects:
-            obj.draw(screen)
+            obj.draw(self.screen)
+            
 
     def _queue_destroy(self, obj):
         self._destroy_queue.append(obj)

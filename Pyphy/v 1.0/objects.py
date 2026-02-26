@@ -1,7 +1,7 @@
 
 from spatial import *
 from color_class import RGBa
-from components import Component
+from pyphy_errors import *
 
 class StageObject:
     _counter = 0
@@ -29,7 +29,7 @@ class StageObject:
 
     def set_parent(self, parent):
         if not isinstance(parent, StageObject):
-            raise TypeError(f"Parent given {parent} is not a StageObject")
+            raise StageObjectError(f"Parent given > {parent} < is not a StageObject pygame/objects/class.StageObject")
         
         if self.parent:
             self.parent.children.remove(self)
@@ -45,14 +45,14 @@ class StageObject:
         
     def add_component(self, component):
         if isinstance(component, type):
-            raise TypeError("add_component expects an instance, not a class")
+            raise ComponentError("add_component() expects an instance, not a class")
         for c in self.components:
             if isinstance(c, type(component)):
-                raise ValueError(f"You are adding a already there component {type(component).__name__}")
-            break
+                raise DupeComponentError(f"You are adding a already there component -> '{type(component).__name__}' ")
             
         component.owner = self
         self.components.append(component)
+        
         
         return component
     
@@ -100,7 +100,6 @@ class StageObject:
     def late_update(self, dt):
         pass
 
-
     def destroy(self):
         if self._destroyed == True:
             return 
@@ -114,3 +113,22 @@ class StageObject:
         if self.scene:
             self.scene._queue_destroy(self)
     
+    def get_component_overview(self):
+        overview = []
+
+        for i, c in enumerate(self.components, start=1):
+            overview.append((i, c.__class__.__name__))
+
+        return overview
+    
+    def component_debug_view(self, to_print: bool | None =False):
+        if to_print == True:
+            print(f"\n --------- {self.name} Components ---------")
+            for i, name in self.get_component_overview():
+                print(f"{i} -> {name}")
+
+        return f"{i} -> {name}"
+                
+    
+
+

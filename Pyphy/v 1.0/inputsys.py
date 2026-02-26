@@ -28,6 +28,7 @@ class Input:
             if cls._current_keys[axis["positive"]]:
                 target += 1
 
+            
             axis["value"] = target
             
             axis["smooth"] += (target - axis["smooth"]) * axis["speed"] * cls._delta_time

@@ -94,6 +94,26 @@ class Vector2():
         
         return Vector2(self.x / gcd, self.y / gcd)
     
+    @property
+    def angle(self):
+        _ang = math.atan2(self.y, self.x) * (180/math.pi)
+        return _ang
+    
+    def set_x(self, new_val):
+        return Vector2(new_val, self.y)
+    
+    def set_y(self, new_val):
+        return Vector2(self.x, new_val)
+    
+    def add_to_x(self, val):
+        return Vector2(self.x + val, self.y)
+    
+    def add_to_y(self, val):
+        return Vector2(self.x, self.y + val)
+    
+    @staticmethod
+    def dot(v1, v2):
+        return (v1.x * v2.x) + (v1.y * v2.y)
 
 # VEC FUNCS
     
@@ -123,6 +143,8 @@ def rotate_around(point: Vector2, centre: Vector2, angle_rad: float) -> Vector2:
     translated = point - centre
     rotated = rotate(translated, angle_rad)
     return rotated + centre
+
+
     
 Vector2.ZERO = Vector2(0, 0)
 Vector2.UNIT = Vector2(1, 1)

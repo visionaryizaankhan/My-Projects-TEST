@@ -111,6 +111,7 @@ class Triangle(Shape):
         points = [Vector2(p.x * self.size.x, p.y * self.size.y) for p in local_points]
         return points
     
+    
     @property
     def centroid(self):
         return Vector2.ZERO

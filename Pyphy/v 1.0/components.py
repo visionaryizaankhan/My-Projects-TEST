@@ -4,6 +4,8 @@ from color_class import RGBa
 import pygame
 from inputsys import Input
 from geom import *
+from objects import StageObject
+from pyphy_errors import *
 
 class ForceType(Enum):
     FORCE = 1
@@ -31,7 +33,6 @@ class Component:
 
     def c_destroy(self):
         self.enabled = False
-
 
 class RigidBody(Component):
     def __init__(self):
@@ -83,7 +84,7 @@ class PlayerController(Component):
     def c_start(self):
         self.rb = self.owner.get_component(RigidBody)
         if self.rb is None:
-            raise Exception("PlayerController requires Rigidbody, but none given")
+            raise MissionComponentError(f"PlayerController requires a > Rigidbody < component, but the StageObject > {self.owner.name} < does not have any")
     
 
     def c_update(self, dt):
@@ -121,6 +122,7 @@ class PlayerController(Component):
         else:
             self.is_grounded = False   
 
+#region Renderers
 class ShapeRenderer(Component):
     def __init__(self, shape, color: RGBa | None=None, fill_color: RGBa | None=None):
         super().__init__()
@@ -173,8 +175,10 @@ class TextRenderer(Component):
 
         screen.surface.blit(self._surface, position)
 
-
 class ImageRenderer(Component):
+
+
+    
     def __init__(self, image_path: str, width: int =None, heigth: int = None):
         super().__init__()
         self.image_path = image_path
@@ -204,3 +208,118 @@ class ImageRenderer(Component):
         else:
             rect = self.image.get_rect(center=pos)
             screen.surface.blit(self.image, rect.topleft)  
+#endregion
+
+class CollisonInfo:
+    def __init__(self, normal, depth):
+        self.normal = normal
+        self.depth = depth
+
+    def __repr__(self):
+        return f"COLLISON DATA: [NORMAL] -> {self.normal}, [DEPTH] -> {self.depth}"
+
+class PolygonCollider(Component):
+    def __init__(self, shape):
+        super().__init__()
+        self.shape = shape
+        self.verticles = self.shape.get_points()
+
+    @property
+    def get_world_points(self):
+        return [
+            self.owner.transform.apply_to_point(p) for p in self.shape.get_points()
+        ]
+    
+    
+    def _get_axes_from(self, vertices):
+        axes = []
+
+        for i in range(len(vertices)):
+            p1 = vertices[i]
+            p2 = vertices[(i+1) % len(vertices)]
+
+            edge = p2 - p1
+            
+            normal = Vector2(-edge.y, edge.x).normalized
+
+            axes.append(normal)
+
+        return axes
+    
+    @staticmethod
+    def _project(verts, axis):        
+        min_pro =  float("inf")
+        max_pro =  float("-inf")
+
+        for v in verts:
+            proj = Vector2.dot(v, axis)
+            min_pro = min(min_pro, proj)
+            max_pro = max(max_pro, proj)
+
+        return min_pro, max_pro
+    
+    def _sat(self, other, return_info=False):
+        vert_a = self.get_world_points
+        vert_b = other.get_world_points
+
+        axes = self._get_axes_from(vert_a) + self._get_axes_from(vert_b)
+
+        min_overlap = float("inf")
+        sm_axis = None
+
+        for axis in axes:
+            min_a, max_a = self._project(vert_a, axis)
+            min_b, max_b = self._project(vert_b, axis)
+
+            if max_a < min_b or max_b < min_a:
+                return False if not return_info else None
+            
+            overlap = min(max_a, max_b) - max(min_a, min_b)
+
+            if overlap < min_overlap:
+                min_overlap = overlap
+                sm_axis = axis
+
+        if not return_info:
+            return True
+        
+        direc = other.owner.transform.position - self.owner.transform.position
+
+        if Vector2.dot(direc, sm_axis) < 0:
+            sm_axis = -sm_axis
+
+        return CollisonInfo(sm_axis, min_overlap)
+    
+
+    def intersects(self, other):
+        if isinstance(other, StageObject):
+            for c in other.components:
+                collider = other.get_component(PolygonCollider)
+                return self._sat(collider, return_info=False)
+            
+        if isinstance(other, PolygonCollider):
+            return self._sat(other, return_info=False)
+
+        raise NotExpectedArgumentType(f"The argument in intersects() must be a StageObject or a Collider, not {type(other).__name__} ")
+    
+    def intersection(self, other):
+        if isinstance(other, StageObject):
+            for c in other.components:
+                collider = other.get_component(PolygonCollider)
+                return self._sat(collider, return_info=True)
+            
+        if isinstance(other, PolygonCollider):
+            return self._sat(other, return_info=True)
+
+        raise NotExpectedArgumentType(f"The argument in intersects() must be a StageObject or a Collider, not {type(other).__name__} ")
+
+            
+
+
+
+
+
+
+
+
+

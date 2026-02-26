@@ -21,6 +21,13 @@ class Transform:
         self.rotation = angle % 360
 
 
+    def set_scale(self, new_scale):
+        self.scale = new_scale
+
+    def scale_by(self, scale):
+        self.scale += scale
+
+
     @property
     def world_position(self):
         if self.owner.parent:
@@ -48,6 +55,6 @@ class Transform:
         rotated = rotate(scaled, self.world_rotation)
         world = rotated + self.world_position
 
-        return world
+        return world 
     
         

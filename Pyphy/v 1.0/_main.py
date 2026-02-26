@@ -9,11 +9,14 @@ class Game(Scene):
     def start(self):
         self.tobj = StageObject() 
         self.t = self.tobj.add_component(ShapeRenderer(Triangle(Vector2(100, 100)), RGBa.RED, RGBa.RED))
-        self.add_objects(self.tobj)
+        self.tcol = self.tobj.add_component(PolygonCollider(Triangle(Vector2(100, 100))))
         self.tobj.transform.position = self.screen.centre
 
+        self.add_objects(self.tobj)
+
     def update(self, dt):
-        print("Hello world")
+        print(self.tobj.component_debug_view(False))
+        
         
         
 source.set_scene(Game())
